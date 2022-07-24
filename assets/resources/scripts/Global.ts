@@ -1,28 +1,22 @@
-// Learn TypeScript:
-//  - https://docs.cocos.com/creator/manual/en/scripting/typescript.html
-// Learn Attribute:
-//  - https://docs.cocos.com/creator/manual/en/scripting/reference/attributes.html
-// Learn life-cycle callbacks:
-//  - https://docs.cocos.com/creator/manual/en/scripting/life-cycle-callbacks.html
+import { TileAnimationController } from "./animations/TileAnimations";
+import Config from "./cfg/Config";
+import GridController from "./Controllers/GridController";
 
 const {ccclass, property} = cc._decorator;
 
 @ccclass
-export default class NewClass extends cc.Component {
+export default class Global extends cc.Component {
+    private _config = new Config()
+    // private _gridController = new GridController()
+    private _tileAnimationController = new TileAnimationController()
+    // private _statsController = new StatsController()
+    private static _instance: Global
 
-    @property(cc.Label)
-    label: cc.Label = null;
+    static get instance() { return this._instance || (this._instance = new Global()) }
+    static get config() { return Global.instance._config }
+    // static get gridController() { return this._instance._gridController }
+    static get tileAnimation() { return this._instance._tileAnimationController }
+    // static get statsController() { return this._instance._statsController }
 
-    @property
-    text: string = 'hello';
-
-    // LIFE-CYCLE CALLBACKS:
-
-    // onLoad () {}
-
-    start () {
-
-    }
-
-    // update (dt) {}
+        
 }

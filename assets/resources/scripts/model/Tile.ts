@@ -1,28 +1,61 @@
-// Learn TypeScript:
-//  - https://docs.cocos.com/creator/manual/en/scripting/typescript.html
-// Learn Attribute:
-//  - https://docs.cocos.com/creator/manual/en/scripting/reference/attributes.html
-// Learn life-cycle callbacks:
-//  - https://docs.cocos.com/creator/manual/en/scripting/life-cycle-callbacks.html
+import { Event } from "../utils/EventHandler"
 
-const {ccclass, property} = cc._decorator;
+export const enum TileColor {
+    Blue,
+    Red,
+    Green,
+    Orange,
+    Violet
+}
 
-@ccclass
-export default class NewClass extends cc.Component {
+export const enum TileState {
+    Empty,
+    Normal,
+    Booster
+}
 
-    @property(cc.Label)
-    label: cc.Label = null;
+export class Tile {
+    private _position: cc.Vec2
+    private _color: TileColor
+    private _state: TileState
 
-    @property
-    text: string = 'hello';
+    onTileClick = new Event
+    onStateUpdated = new Event
+    noCombo = new Event
 
-    // LIFE-CYCLE CALLBACKS:
+    get position() { return this._position }
+    get color() { return this._color }
+    get state() { return this._state }
+    get removed() { return this._state == TileState.Empty }
+    get isNormal() { return this._state != TileState.Empty }
+    set state(state: TileState) { this._state = state }
 
-    // onLoad () {}
+    constructor(pos: cc.Vec2) {
+        this._position = pos
+        this._color = this.getRandomTile()
+        this._state = TileState.Normal
+    }
+    getRandomTile() {
+        let min = TileColor.Blue
+        let max = TileColor.Violet
 
-    start () {
-
+        return Math.floor(Math.random() * (max - min + 1)) + min
     }
 
-    // update (dt) {}
+    updateState() {
+        this._state = TileState.Normal
+        this._color = this.getRandomTile()
+        this.onStateUpdated.dispatch()
+    }
+    onClick() {
+        cc.log("[LOG]tile.color", this._color)
+        this.onTileClick.dispatch()
+    }
+    remove() {
+        this.state = TileState.Empty
+    }
+    updatePos(newPos: cc.Vec2) {
+        this._position = newPos
+    }
+
 }

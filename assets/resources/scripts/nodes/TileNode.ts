@@ -1,28 +1,51 @@
-// Learn TypeScript:
-//  - https://docs.cocos.com/creator/manual/en/scripting/typescript.html
-// Learn Attribute:
-//  - https://docs.cocos.com/creator/manual/en/scripting/reference/attributes.html
-// Learn life-cycle callbacks:
-//  - https://docs.cocos.com/creator/manual/en/scripting/life-cycle-callbacks.html
+import { TileAnimationType } from "../animations/TileAnimations";
+import Global from "../Global";
+import { Tile } from "../model/Tile";
+import { Event } from "../utils/EventHandler";
 
 const {ccclass, property} = cc._decorator;
 
 @ccclass
-export default class NewClass extends cc.Component {
+export default class TileNode extends cc.Component {
+    @property(cc.Sprite) tileIcon: cc.Sprite = null
+    @property([cc.SpriteFrame]) icons = new Array<cc.SpriteFrame>()
 
-    @property(cc.Label)
-    label: cc.Label = null;
+    private _tile: Tile = null
 
-    @property
-    text: string = 'hello';
+    onColorChange = new Event
 
-    // LIFE-CYCLE CALLBACKS:
+    get tile() { return this._tile }
+    get isNormal() { return this._tile.isNormal }
+    get color() { return this._tile.color }
+    get tilePosition() { return this._tile.position }
+    get size() { return this.node.getContentSize().width }
 
-    // onLoad () {}
-
-    start () {
-
+    setInfo(tile: Tile) {
+        this._tile = tile
     }
 
-    // update (dt) {}
+    async updateIcon() {
+        if (this._tile.isNormal) this.tileIcon.spriteFrame = this.icons[this.color]
+    }
+    onLoad() {
+        this.tileIcon.spriteFrame = this.icons[this.color]
+        this._tile.noCombo.add(this.node, () => this.noConnectedAnimation())
+    }
+
+    onClick() {
+        this._tile.onClick()
+    }
+
+    noConnectedAnimation() {
+        return Global.tileAnimation.animate(this, TileAnimationType.NoConnected)
+    }
+    removingAnimation() {
+        return Global.tileAnimation.animate(this, TileAnimationType.Removing)
+    }
+    dropingAnimation() {
+        return Global.tileAnimation.animate(this, TileAnimationType.Droping)
+    }
+    emergenceAnimation() {
+        return Global.tileAnimation.animate(this, TileAnimationType.Emergence)
+    }
 }
