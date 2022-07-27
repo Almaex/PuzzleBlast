@@ -5,20 +5,10 @@ import { Tile } from "./Tile";
 export const enum GridState {
     NotReady = 0,
     Ready,
-    Move,
-    FullStop,
-    SelectBooster
-}
-
-export const enum GridChangesType {
-    None,
-    Simple,
-    Booster,
-    Reshuffle
+    Move
 }
 
 export class GridChangesInfo {
-    type: GridChangesType = GridChangesType.None
     activeTile: Tile
     removedTiles: Array<Tile>
     dropTiles: Array<Tile>
@@ -40,7 +30,7 @@ export class Grid {
     get columnCount() { return this._size.y }
     get currentGrid() { return this._currentGrid }
     get connectedTilesArray() { return this._connectedTilesArray }
-    get isBlock() { return this._state == GridState.Move || this._state == GridState.FullStop }
+    get isBlock() { return this._state == GridState.Move }
 
     onGridChanged = new Event
     onNeedMix = new Event
@@ -99,7 +89,6 @@ export class Grid {
 
     private _changeCurrentGrid(tile: Tile) {
         if (!this._canMove(tile)) return
-        this._gridChangesInfo.type = GridChangesType.Simple
         this._gridChangesInfo.activeTile = tile
         this._gridChangesInfo.removedTiles = this._removeTiles(tile)
 

@@ -8,14 +8,11 @@ export default class SyncScene extends cc.Component {
     @property(cc.Node) syncScreen: cc.Node = null
 
     start() {
-        this._preload().then(() => cc.director.loadScene("MenuScene"))
+        Global.instance.init().then(() => this._preload())
     }
 
-    private _preload() {
-        return new Promise<void>(resolve => {
-            cc.log("[LOG]_preload")
-            new Timer(Global.config.loadSceneDelay, () => {cc.director.preloadScene("MenuScene"), resolve()})
-            
-        })
+    private async _preload() {
+        new Timer(Global.config.loadSceneDelay, () => {cc.director.preloadScene("MenuScene")})
+        cc.director.loadScene("MenuScene")
     }
 }
