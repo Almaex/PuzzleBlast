@@ -48,7 +48,6 @@ export class Tile {
         this.onStateUpdated.dispatch()
     }
     onClick() {
-        cc.log("[LOG]tile.color", this._color)
         this.onTileClick.dispatch()
     }
     remove() {

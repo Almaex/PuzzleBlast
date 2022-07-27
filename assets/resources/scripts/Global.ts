@@ -1,22 +1,22 @@
 import { TileAnimationController } from "./animations/TileAnimations";
 import Config from "./cfg/Config";
-import GridController from "./Controllers/GridController";
+import { Stats } from "./model/Stats";
 
-const {ccclass, property} = cc._decorator;
-
-@ccclass
-export default class Global extends cc.Component {
-    private _config = new Config()
-    // private _gridController = new GridController()
-    private _tileAnimationController = new TileAnimationController()
-    // private _statsController = new StatsController()
+export default class Global {
     private static _instance: Global
+    private _config: Config
+    private _tileAnimationController: TileAnimationController
+    private _stats: Stats
 
-    static get instance() { return this._instance || (this._instance = new Global()) }
-    static get config() { return Global.instance._config }
-    // static get gridController() { return this._instance._gridController }
-    static get tileAnimation() { return this._instance._tileAnimationController }
-    // static get statsController() { return this._instance._statsController }
+    static get instance() { return Global._instance || (this._instance = new Global())}
+    static get config() { return this._instance._config }
+    static get stats() { return this._instance._stats }
+    static get tileAnimation() { return Global._instance._tileAnimationController }
 
-        
+    init = () => new Promise<void>((resolve) => {
+        Global._instance._config = new Config()
+        Global._instance._stats = new Stats(Global.config.defaultScoreToWin, Global.config.defaultMoves)
+        Global._instance._tileAnimationController = new TileAnimationController()
+        resolve()
+    })
 }

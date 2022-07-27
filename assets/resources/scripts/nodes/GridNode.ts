@@ -12,6 +12,7 @@ export class GridNode extends cc.Component {
     @property(cc.Prefab) tilePrefab: cc.Prefab = null
 
     onAnimationCompleted = new Event
+    onGridChanged = new Event
 
     private _grid: Grid
     private _tileSize = 0
@@ -28,24 +29,24 @@ export class GridNode extends cc.Component {
     }
 
     async createGrid() {
-        cc.log("[LOG]createGrid")
         this._grid = new Grid(Global.config.gridSize)
         this._tileSize = this.tilePrefab.data.getContentSize().width
-        this._grid.currentGrid.forEach(r => r.forEach(t => this.onCreateGridView(t)))
-        this._grid.onGridChanged.add(this.node, (info: GridChangesInfo) => this._simpleChange(info))
+        this._grid.currentGrid.forEach(r => r.forEach(t => this.createTile(t)))
+        this._grid.onGridChanged.add(this.node, (info: GridChangesInfo) => {
+            this._simpleChange(info)
+            this.onGridChanged.dispatch(info.removedTiles.length)
+        })
     }
 
-    onCreateGridView(tile: Tile) {
+    createTile(tile: Tile) {
         let tileNode = cc.instantiate(this.tilePrefab)
         tileNode.getComponent(TileNode).setInfo(tile)
         tileNode.setContentSize
         tileNode.setPosition(tile.position.y * this._tileSize, -tile.position.x * this._tileSize)
-        cc.log("[LOG]createGrid")
         this.view.addChild(tileNode)
     }
 
     private async _simpleChange(changesInfo: GridChangesInfo) {
-        cc.log("[LOG] simpleChange", changesInfo)
         await Promise.all(changesInfo.removedTiles.map(t => this.getTileNode(t).removingAnimation()))
         await Promise.all(changesInfo.dropTiles.map(t => this.getTileNode(t).dropingAnimation()))
         await Promise.all(changesInfo.removedTiles.map(t => this.getTileNode(t).updateIcon()))

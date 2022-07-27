@@ -1,23 +1,14 @@
-import { chunkArray, Event, shuffle } from "../utils/EventHandler";
+import { Event } from "../utils/EventHandler";
+import { GridMixer } from "./GridUtils";
 import { Tile } from "./Tile";
 
 export const enum GridState {
-    NotReady = 0,
+    NotReady,
     Ready,
     Move,
-    FullStop,
-    SelectBooster
-}
-
-export const enum GridChangesType {
-    None,
-    Simple,
-    Booster,
-    Reshuffle
 }
 
 export class GridChangesInfo {
-    type: GridChangesType = GridChangesType.None
     activeTile: Tile
     removedTiles: Array<Tile>
     dropTiles: Array<Tile>
@@ -27,17 +18,18 @@ export class GridChangesInfo {
 
 export class Grid {
     private _size: cc.Vec2 = null
+    private _state = GridState.NotReady
     private _currentGrid: Array<Array<Tile>> = []
     private _connectedTilesArray: Array<Tile> = []
     private _gridChangesInfo: GridChangesInfo = new GridChangesInfo()
-    private _state = GridState.NotReady
+    private _gridMixer: GridMixer = new GridMixer()
 
     get size() { return this._size }
     get rowsCount() { return this._size.x }
     get columnCount() { return this._size.y }
     get currentGrid() { return this._currentGrid }
     get connectedTilesArray() { return this._connectedTilesArray }
-    get isBlock() { return this._state == GridState.Move || this._state == GridState.FullStop }
+    get isBlock() { return this._state == GridState.Move }
 
     onGridChanged = new Event
 
@@ -51,45 +43,16 @@ export class Grid {
         this._state = GridState.Ready
     }
 
-    reshuffleGridIfNeeded(forceReshuffle = false) {
-        if (!this._needReshuffle() && !forceReshuffle) return
-        const updateAllTiles = () => {
-            for (let row = 0; row < this._size.x; row++) {
-                for (let column = 0; column < this._size.y; column++) {
-                    this._currentGrid[row][column].updatePos(cc.v2(row, column))
-                }
-            }
-        }
-        let allTiles = []
-        this._currentGrid.forEach(r => allTiles = allTiles.concat(r))
-        shuffle(allTiles)
-        let newBoard = chunkArray(allTiles, this._size.x)
-        this._currentGrid = newBoard
-        updateAllTiles()
-        this.reshuffleGridIfNeeded()
-    }
-    private _needReshuffle() {
-        for (let row = 0; row < this._size.x; row++) {
-            for (let column = 0; column < this._size.y; column++) {
-                let tilePos = cc.v2(row, column)
-                if (this._getListConnectedTiles(tilePos).length > 1) {
-                    return false
-                }
-            }
-        }
-        return true
-    }
-
     private _getTile(position: cc.Vec2) {
         return this._currentGrid[position.x][position.y]
     }
-    isValidPick = (pos: cc.Vec2) => this._currentGrid[pos.x]?.[pos.y] != null
-
+    private _isValidPick = (pos: cc.Vec2) => this._currentGrid[pos.x]?.[pos.y] != null
+    
     private _findTilesChain(pos: cc.Vec2, color) {
-        if (!this.isValidPick(pos)) return
+        if (!this._isValidPick(pos)) return
         let tile = this._getTile(pos)
         if (tile.removed) return
-    
+        
         if (tile.color == color && !this._isCheckTile(tile)) {
             this._connectedTilesArray.push(tile)
             this._findTilesChain(cc.v2(pos.x + 1, pos.y), color)
@@ -98,8 +61,8 @@ export class Grid {
             this._findTilesChain(cc.v2(pos.x, pos.y - 1), color)
         }
     }
-    private _canMakeMove(tile: Tile) {
-        let tiles = this._getListConnectedTiles(tile.position)
+    private _canMove(tile: Tile) {
+        let tiles = this._getConnectedTiles(tile.position)
         let canMakeMove = tiles.length > 1
         if (!canMakeMove) {
             tile.noCombo.dispatch()
@@ -125,10 +88,21 @@ export class Grid {
                 this.currentGrid[row].push(tile)
             }
         }
-        this.reshuffleGridIfNeeded()
+        this.mixGrid()
             
     }
-    private _getListConnectedTiles(pos: cc.Vec2) {
+    private _needMix() {
+        for (let row = 0; row < this.size.x; row++) {
+            for (let column = 0; column < this.size.y; column++) {
+                let tilePos = cc.v2(row, column)
+                if (this._getConnectedTiles(tilePos).length > 1) {
+                    return false
+                }
+            }
+        }
+        return true
+    }
+    private _getConnectedTiles(pos: cc.Vec2) {
         this._connectedTilesArray = []
         let tileColor = this._getTile(pos).color
         this._findTilesChain(pos, tileColor)
@@ -136,8 +110,7 @@ export class Grid {
     }
 
     private _changeCurrentGrid(tile: Tile) {
-        if (!this._canMakeMove(tile)) return
-        this._gridChangesInfo.type = GridChangesType.Simple
+        if (!this._canMove(tile)) return
         this._gridChangesInfo.activeTile = tile
         this._gridChangesInfo.removedTiles = this._removeTiles(tile)
 
@@ -149,7 +122,7 @@ export class Grid {
 
     private _removeTiles(tile: Tile) {
         let r = []
-        let tiles = this._getListConnectedTiles(tile.position)
+        let tiles = this._getConnectedTiles(tile.position)
         tiles.forEach((removedTile: Tile) => {
             let tile = this._getTile(removedTile.position)
             r = r.concat(this._getRemoveTiles(tile))
@@ -206,4 +179,7 @@ export class Grid {
             }
         }
     }
+
+        
+    
 }
