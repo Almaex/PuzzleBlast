@@ -9,7 +9,7 @@ export default class GameScene extends cc.Component {
     @property(cc.Node) statsBarPosition: cc.Node = null
     @property(cc.Node) gridPosition: cc.Node = null
 
-    private _grid: GridNode = null
+    private _gridNode: GridNode = null
 
     onLoad() {
         let statsNode = cc.instantiate(this.statsBarPrefab)
@@ -20,18 +20,8 @@ export default class GameScene extends cc.Component {
     private _createGrid() {
         cc.log("[LOG]_createGrid")
         let gridNode = cc.instantiate(this.gridPrefab)
-        this._grid = gridNode.getComponent(GridNode)
-        this._initView()
+        this._gridNode = gridNode.getComponent(GridNode)
+        this._gridNode.createGrid()
         this.gridPosition.addChild(gridNode)
-    }
-
-    private _initView() {
-        cc.log("[LOG]_initView")
-        this._grid.createGrid().then(() => {
-            cc.log("[LOG]_initView.then")
-            this._grid.onAnimationCompleted.add(this.node, needReshuffle => {
-                this._grid.removeBlock()
-            })
-        })
     }
 }

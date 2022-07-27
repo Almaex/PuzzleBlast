@@ -5,7 +5,8 @@ export const enum TileAnimationType {
     NoConnected,
     Removing,
     Droping,
-    Emergence
+    Emergence,
+    Mix
 }
 
 export class TileAnimationController {
@@ -26,6 +27,8 @@ export class TileAnimationController {
                 return (this._droping())
             case TileAnimationType.Emergence:
                 return (this._emergence())
+            case TileAnimationType.Mix:
+                return (this._mix())
             default:
                 cc.log("No valid animation!")
         }
@@ -89,6 +92,22 @@ export class TileAnimationController {
                 tileNode.opacity = 255
             })
             .then(scale)
+            .call(r)
+            .start()
+    })
+
+    private _mix = () => new Promise(r => {
+        let tileNode = this._tile.node
+        let endPos = cc.v3(this._tile.tilePosition.y * this._tileSize, -this._tile.tilePosition.x * this._tileSize)
+        const delay = 0.2
+        
+        cc.tween(tileNode)
+            .to(0.2, { scale: 0 })
+            .call(() => {
+                tileNode.position = endPos
+            })
+            .delay(delay)
+            .to(0.2, { scale: 1 })
             .call(r)
             .start()
     })

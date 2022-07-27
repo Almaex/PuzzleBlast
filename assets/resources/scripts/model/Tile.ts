@@ -11,9 +11,8 @@ export const enum TileColor {
 export const enum TileState {
     Empty,
     Normal,
-    Booster
+    Bomb
 }
-
 export class Tile {
     private _position: cc.Vec2
     private _color: TileColor

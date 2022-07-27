@@ -28,7 +28,6 @@ export class GridNode extends cc.Component {
     }
 
     async createGrid() {
-        cc.log("[LOG]createGrid")
         this._grid = new Grid(Global.config.gridSize)
         this._tileSize = this.tilePrefab.data.getContentSize().width
         this._grid.currentGrid.forEach(r => r.forEach(t => this.onCreateGridView(t)))
@@ -40,7 +39,6 @@ export class GridNode extends cc.Component {
         tileNode.getComponent(TileNode).setInfo(tile)
         tileNode.setContentSize
         tileNode.setPosition(tile.position.y * this._tileSize, -tile.position.x * this._tileSize)
-        cc.log("[LOG]createGrid")
         this.view.addChild(tileNode)
     }
 
@@ -50,6 +48,9 @@ export class GridNode extends cc.Component {
         await Promise.all(changesInfo.dropTiles.map(t => this.getTileNode(t).dropingAnimation()))
         await Promise.all(changesInfo.removedTiles.map(t => this.getTileNode(t).updateIcon()))
         await Promise.all(changesInfo.removedTiles.map(t => this.getTileNode(t).emergenceAnimation()))
-        this.onAnimationCompleted.dispatch(changesInfo.reshuffle)
+        this.onAnimationCompleted.dispatch(changesInfo.needMix)
+        this.removeBlock()
+    }
+    private async _bombChange(changesInfo: GridChangesInfo) {
     }
 }
