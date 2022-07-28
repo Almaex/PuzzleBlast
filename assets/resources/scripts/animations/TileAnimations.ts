@@ -56,7 +56,7 @@ export class TileAnimationController {
 
     private _droping = () => new Promise(r => {
         let tileNode = this._tile.node
-        const speed = 0.5
+        const speed = 0.4
         
         let endPos = cc.v3(this._tile.tilePosition.y * this._tileSize, -this._tile.tilePosition.x * this._tileSize)
         const delay = 0.01
@@ -70,7 +70,7 @@ export class TileAnimationController {
 
     private _emergence = () => new Promise(r => {
         let tileNode = this._tile.node
-        const speed = 0.7
+        const speed = 0.6
         
         let endPos = cc.v3(this._tile.tilePosition.y * this._tileSize, -this._tile.tilePosition.x * this._tileSize)
         let startPos = cc.v3(this._tile.tilePosition.y * this._tileSize, cc.winSize.height / 2, 0)

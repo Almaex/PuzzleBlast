@@ -4,7 +4,8 @@ export enum GridAct {
     Mix,
     Drop,
     Fill,
-    Find
+    Find,
+    Remove
 }
 
 export class GridUtils {
@@ -13,6 +14,7 @@ export class GridUtils {
     private _dropper = new GridDropper()
     private _filler = new GridFiller()
     private _finder = new GridFinder()
+    private _remover = new GridRemover()
 
     doAct(grid: Array<Array<Tile>>, size: cc.Vec2, act: GridAct) {
         switch(act) {
@@ -24,6 +26,8 @@ export class GridUtils {
                 return this._filler.fill(grid, size)
             case GridAct.Find:
                 return this._finder.find(grid, size)
+            case GridAct.Remove:
+                return this._remover.remove(grid, size)
         }
     }
 }
@@ -151,6 +155,7 @@ class GridFiller {
 }
 
 class GridFinder {
+
     private _connectedTilesArray: Array<Tile> = []
     private _grid: Array<Array<Tile>> = []
 
@@ -161,8 +166,7 @@ class GridFinder {
     private _getTile(position: cc.Vec2) {
         return this._grid[position.x][position.y]
     }
-    private _isCheckTile = (tileCheck: Tile) => 
-        this._connectedTilesArray.find(tile => { return tile.position.x === tileCheck.position.x && tile.position.y === tileCheck.position.y }) != null
+    private _isCheckTile = (tileCheck: Tile) => this._connectedTilesArray.find(tile => { return tile.position.x === tileCheck.position.x && tile.position.y === tileCheck.position.y }) != null
     private _isValidPick = (position: cc.Vec2) => this._grid[position.x]?.[position.y] != null
     
     private _findTilesChain(position: cc.Vec2, color) {
@@ -183,5 +187,52 @@ class GridFinder {
         let tileColor = this._getTile(position).color
         this._findTilesChain(position, tileColor)
         return this._connectedTilesArray
+    }
+}
+
+export class GridRemover {
+
+    private _connectedTilesArray: Array<Tile> = []
+    private _grid: Array<Array<Tile>> = []
+
+    remove(grid: Array<Array<Tile>>, tile: cc.Vec2) {
+        this._grid = grid
+        this._connectedTilesArray = []
+        this._findLeft(tile, 2)
+        this._findRight(tile, 2)
+        return this._connectedTilesArray
+    }
+
+    private _getTile(position: cc.Vec2) {
+        return this._grid[position.x][position.y]
+    }
+
+    private _isValidPick = (position: cc.Vec2) => this._grid[position.x]?.[position.y] != null
+
+    private _findLeft(position: cc.Vec2, area: number) {
+        for (let i = position.x; i <= position.x + area; i++) {
+            for (let j = position.y - area; j <= position.y; j++) {
+                this._addTile(i, j)
+            }
+            for (let j = position.y; j <= position.y + area; j++) {
+                this._addTile(i, j)
+            }
+        }
+    }
+    private _findRight(position: cc.Vec2, area: number) {
+        for (let i = position.x - area; i <= position.x; i++) {
+            for (let j = position.y; j <= position.y + area; j++) {
+                this._addTile(i, j)
+            }
+            for (let j = position.y - area; j <= position.y; j++) {
+                this._addTile(i, j)
+            }
+        }
+    }
+    private _addTile(x: number, y: number) {
+        if (this._isValidPick(cc.v2(x,y))) {
+            let newTile = this._getTile(cc.v2(x, y))
+            this._connectedTilesArray.push(newTile)
+        }
     }
 }

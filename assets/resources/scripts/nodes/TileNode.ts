@@ -12,8 +12,6 @@ export default class TileNode extends cc.Component {
 
     private _tile: Tile = null
 
-    onColorChange = new Event
-
     get tile() { return this._tile }
     get isNormal() { return this._tile.isNormal }
     get color() { return this._tile.color }
@@ -30,6 +28,9 @@ export default class TileNode extends cc.Component {
     onLoad() {
         this.tileIcon.spriteFrame = this.icons[this.color]
         this._tile.noCombo.add(this.node, () => this.noConnectedAnimation())
+    }
+    updateTileIconAnimation() {
+        this.tileIcon.spriteFrame = this.icons[this._tile.state]
     }
 
     onClick() {

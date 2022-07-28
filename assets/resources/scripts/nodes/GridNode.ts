@@ -1,6 +1,6 @@
 import Global from "../Global";
-import { Grid, GridChangesInfo } from "../model/Grid";
-import { Tile } from "../model/Tile";
+import { Grid, GridChangesInfo, GridChangesType } from "../model/Grid";
+import { Tile, TileState } from "../model/Tile";
 import { Event } from "../utils/EventHandler";
 import TileNode from "./TileNode";
 
@@ -18,6 +18,8 @@ export class GridNode extends cc.Component {
     private _grid: Grid
     private _tileSize = 0
 
+    get isSelectBooster() { return this._grid.isSelectBooster }
+ 
     removeBlock() {
         this._grid.removeBlock()
     }
@@ -29,14 +31,15 @@ export class GridNode extends cc.Component {
         }).getComponent(TileNode)
     }
 
-    async createGrid() {
+    createGrid() {
         this._grid = new Grid(Global.config.gridSize)
         this._tileSize = this.tilePrefab.data.getContentSize().width
         this._grid.currentGrid.forEach(r => r.forEach(t => this.createTile(t)))
         this._grid.onGridChanged.add(this.node, (info: GridChangesInfo) => {
-            this._simpleChange(info)
+            this._gridChange(info)
             this.onGridChanged.dispatch(info.removedTiles.length)
         })
+        this._grid.onAddBooster.add(this.node, (tile: Tile) => this.changeTile(tile))
     }
 
     createTile(tile: Tile) {
@@ -46,15 +49,20 @@ export class GridNode extends cc.Component {
         tileNode.setPosition(tile.position.y * this._tileSize, -tile.position.x * this._tileSize)
         this.view.addChild(tileNode)
     }
+    changeTile(tile: Tile) {
+        this.getTileNode(tile).updateTileIconAnimation()
+        this.onAnimationCompleted.dispatch()
+    }
+    selectBooster(booster: TileState) {
+        this._grid.waitTileSelectionBooster(booster)
+    }
 
-    private async _simpleChange(changesInfo: GridChangesInfo) {
+    private async _gridChange(changesInfo: GridChangesInfo) {
         await Promise.all(changesInfo.removedTiles.map(t => this.getTileNode(t).removingAnimation()))
         await Promise.all(changesInfo.dropTiles.map(t => this.getTileNode(t).dropingAnimation()))
         await Promise.all(changesInfo.removedTiles.map(t => this.getTileNode(t).updateIcon()))
         await Promise.all(changesInfo.removedTiles.map(t => this.getTileNode(t).emergenceAnimation()))
         this.onAnimationCompleted.dispatch(changesInfo.needMix)
         this.removeBlock()
-    }
-    private async _bombChange(changesInfo: GridChangesInfo) {
     }
 }
