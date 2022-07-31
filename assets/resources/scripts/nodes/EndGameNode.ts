@@ -4,7 +4,7 @@ import { Event } from "../utils/EventHandler";
 const {ccclass, property} = cc._decorator;
 
 @ccclass
-export class GridNode extends cc.Component {
+export class EndGameNode extends cc.Component {
     @property(cc.Label) Label: cc.Label = null
 
     onEnd = new Event
@@ -14,6 +14,7 @@ export class GridNode extends cc.Component {
     }
 
     onClick() {
+        cc.log("[LOG]ENDGAME")
         this.onEnd.dispatch()
     }
    

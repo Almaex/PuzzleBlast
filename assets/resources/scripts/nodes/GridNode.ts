@@ -15,7 +15,6 @@ export class GridNode extends cc.Component {
     onAnimationCompleted = new Event
     onGridChanged = new Event
 
-
     private _grid: Grid
     private _tileSize = 0
 

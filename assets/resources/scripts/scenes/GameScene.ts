@@ -1,8 +1,9 @@
 import Global from "../Global";
 import { BoostersController } from "../model/Boosters";
-import { Stats } from "../model/Stats";
+import { EndGameType, Stats } from "../model/Stats";
 import { TileState } from "../model/Tile";
 import BoostersNode from "../nodes/BoostersNode";
+import { EndGameNode } from "../nodes/EndGameNode";
 import { GridNode } from "../nodes/GridNode";
 import StatsBarNode from "../nodes/ui/StatsBarNode";
 
@@ -13,9 +14,12 @@ export default class GameScene extends cc.Component {
     @property(cc.Prefab) statsBarPrefab: cc.Prefab = null
     @property(cc.Prefab) gridPrefab: cc.Prefab = null
     @property(cc.Prefab) boostersPrefab: cc.Prefab = null
+    @property(cc.Prefab) endGamePrefab: cc.Prefab = null
     @property(cc.Node) statsBarPosition: cc.Node = null
     @property(cc.Node) gridPosition: cc.Node = null
     @property(cc.Node) boostersPosition: cc.Node = null
+    @property(cc.Node) endGamePosition: cc.Node = null
+    @property(cc.Node) blackScreen: cc.Node = null
 
     private _gridNode: GridNode = null
     private _statsNode: StatsBarNode = null
@@ -32,6 +36,7 @@ export default class GameScene extends cc.Component {
         this._setBooters()
         this._createGrid()
         this._gridNode.onGridChanged.add(this.node, (info: number) => this._stats.changeStats(info))
+        this._stats.onEndGame.add(this.node, (type: EndGameType) => this._onEndGame(type))
 
     }
 
@@ -45,6 +50,7 @@ export default class GameScene extends cc.Component {
             else this._gridNode.removeBlock()
         })
     }
+
     private _setBooters() {
         let boostersController = new BoostersController()
         let boostersNode = cc.instantiate(this.boostersPrefab)
@@ -55,6 +61,28 @@ export default class GameScene extends cc.Component {
         })
         this._boostersNode = boostersNode
         this.boostersPosition.addChild(boostersNode)
+    }
 
+    private _onEndGame(type: EndGameType) {
+        let endNode = cc.instantiate(this.endGamePrefab)
+            endNode.getComponent(EndGameNode).setEndType(type)
+            endNode.getComponent(EndGameNode).onEnd.add(this.node, () => {
+                let animEndNode = cc.tween(endNode)
+                    .by(0.1, { scale: 0.1 })
+                    .to(0.2, { scale: 0 })
+                    .start()
+                let animBlackScreen = cc.tween(this.blackScreen)
+                    .to(2, { opacity: 255 })
+                    .call(() => cc.director.loadScene("MenuScene"))
+                    .start()
+                cc.tween(this.blackScreen).sequence(
+                    animEndNode,
+                    cc.tween(this.blackScreen).delay(0.2),
+                    animBlackScreen
+                )
+            })
+            this.blackScreen.active = true
+            this.blackScreen.opacity = 200
+            this.blackScreen.addChild(endNode)
     }
 }
