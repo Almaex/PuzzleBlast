@@ -25,6 +25,7 @@ export default class GameScene extends cc.Component {
     private _statsNode: StatsBarNode = null
     private _stats: Stats = null
     private _boostersNode: cc.Node = null
+    private _boostersController: BoostersController = null
 
 
     onLoad() {
@@ -37,6 +38,7 @@ export default class GameScene extends cc.Component {
         this._createGrid()
         this._gridNode.onGridChanged.add(this.node, (info: number) => this._stats.changeStats(info))
         this._stats.onEndGame.add(this.node, (type: EndGameType) => this._onEndGame(type))
+        this._gridNode.onAddBooster.add(this.node, (type: TileState) => this._boostersController.decremenBoosterCount(type))
 
     }
 
@@ -52,9 +54,9 @@ export default class GameScene extends cc.Component {
     }
 
     private _setBooters() {
-        let boostersController = new BoostersController()
+        this._boostersController = new BoostersController()
         let boostersNode = cc.instantiate(this.boostersPrefab)
-        boostersNode.getComponent(BoostersNode).setBoosters(boostersController)
+        boostersNode.getComponent(BoostersNode).setBoosters(this._boostersController)
         boostersNode.getComponent(BoostersNode).onActiveBooster.add(this.node, (t: TileState) => {
             this._gridNode.selectBooster(t)
             this._boostersNode.getComponent(BoostersNode).selectBooster(t)

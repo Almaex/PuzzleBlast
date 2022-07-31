@@ -1,4 +1,3 @@
-import Global from "../../Global";
 import { Stats } from "../../model/Stats";
 
 const {ccclass, property} = cc._decorator;

@@ -1,7 +1,6 @@
 import { TileAnimationType } from "../animations/TileAnimations";
 import Global from "../Global";
 import { Tile } from "../model/Tile";
-import { Event } from "../utils/EventHandler";
 
 const {ccclass, property} = cc._decorator;
 

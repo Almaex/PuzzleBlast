@@ -25,7 +25,6 @@ export default class BoosterNode extends cc.Component {
 
     onClick() {
         if (this._booster.count <= 0) return
-        cc.log("[LOG]onClisck")
         this.onActiveBooster.dispatch(this._booster.type)
     }
 

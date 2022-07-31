@@ -28,6 +28,8 @@ export class GridUtils {
                 return this._finder.find(grid, size)
             case GridAct.Remove:
                 return this._remover.remove(grid, size)
+            default:
+                return grid
         }
     }
 }

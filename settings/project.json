@@ -2,5 +2,9 @@
   "migrate-history": [
     "cloud-function"
   ],
-  "start-scene": "3e2e93bd-b4f0-4db1-964a-ddb902a7b2aa"
+  "start-scene": "3e2e93bd-b4f0-4db1-964a-ddb902a7b2aa",
+  "group-list": [
+    "default"
+  ],
+  "last-module-event-record-time": 1659300191445
 }

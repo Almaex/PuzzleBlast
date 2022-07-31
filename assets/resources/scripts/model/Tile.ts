@@ -12,7 +12,8 @@ export const enum TileState {
     Empty,
     Normal,
     Bomb,
-    Mix
+    Mix,
+    Rocket
 }
 export class Tile {
     private _position: cc.Vec2
@@ -28,9 +29,10 @@ export class Tile {
     get state() { return this._state }
     get removed() { return this._state == TileState.Empty }
     get isNormal() { return this._state != TileState.Empty }
-    get isBooster() { return this._state == TileState.Bomb || this._state == TileState.Mix }
+    get isBooster() { return this._state == TileState.Bomb || this._state == TileState.Mix || this._state == TileState.Rocket }
     get isBomb() { return this._state == TileState.Bomb }
     get isMix() { return this._state == TileState.Mix }
+    get isRocket() { return this._state == TileState.Rocket }
     set state(state: TileState) { this._state = state }
 
     constructor(pos: cc.Vec2) {

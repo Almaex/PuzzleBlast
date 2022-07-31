@@ -1,4 +1,3 @@
-import Global from "../Global"
 import { Event } from "../utils/EventHandler"
 
 export const enum EndGameType {
@@ -26,9 +25,9 @@ export class Stats {
 
     changeStats(removedCount: number) {
         if (removedCount == 0) return
-        this.checkEndGame()
         this._score += removedCount
         this._moves --
+        this.checkEndGame()
         this.onStatsUpdated.dispatch()
     }
     checkEndGame() {

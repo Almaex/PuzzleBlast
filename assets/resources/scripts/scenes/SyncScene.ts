@@ -1,18 +1,23 @@
 import Global from "../Global";
-import { Timer } from "../utils/Timer";
 
 const {ccclass, property} = cc._decorator;
 
 @ccclass
 export default class SyncScene extends cc.Component {
-    @property(cc.Node) syncScreen: cc.Node = null
+    @property(cc.Node) blackScreen: cc.Node = null
 
     start() {
-        Global.instance.init().then(() => this._preload())
+        Global.instance.init().then(() => this._preload()).then(() => cc.director.loadScene("MenuScene"))
     }
 
-    private async _preload() {
-        new Timer(Global.config.loadSceneDelay, () => {cc.director.preloadScene("MenuScene")})
-        cc.director.loadScene("MenuScene")
-    }
+    private _preload() {
+        return new Promise(resolve => {
+            setTimeout(() => {
+                cc.tween(this.blackScreen)
+                    .call(() => cc.director.preloadScene("MenuScene"))
+                    .to(0.5, {opacity: 255})
+                    .call(resolve)
+                    .start()
+        }, 1000)
+    })}
 }

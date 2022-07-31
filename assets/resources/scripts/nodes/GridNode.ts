@@ -1,5 +1,5 @@
 import Global from "../Global";
-import { Grid, GridChangesInfo, GridChangesType } from "../model/Grid";
+import { Grid, GridChangesInfo } from "../model/Grid";
 import { Tile, TileState } from "../model/Tile";
 import { Event } from "../utils/EventHandler";
 import TileNode from "./TileNode";
@@ -14,6 +14,7 @@ export class GridNode extends cc.Component {
 
     onAnimationCompleted = new Event
     onGridChanged = new Event
+    onAddBooster = new Event
 
     private _grid: Grid
     private _tileSize = 0
@@ -40,7 +41,10 @@ export class GridNode extends cc.Component {
             this._gridChange(info)
             !info.needMix && this.onGridChanged.dispatch(info.removedTiles.length)
         })
-        this._grid.onAddBooster.add(this.node, (tile: Tile) => this.changeTile(tile))
+        this._grid.onAddBooster.add(this.node, (tile: Tile) => {
+            this.changeTile(tile)
+            this.onAddBooster.dispatch(tile.state)
+        })
         this._grid.onNeedMix.add(this.node, () => {
             this._noStepsAnimation()
         })

@@ -1,3 +1,4 @@
+import Global from "../Global";
 import { Event } from "../utils/EventHandler";
 import { TileState } from "./Tile";
 
@@ -31,7 +32,7 @@ export class BoostersController {
         this.boostersList.forEach((type) => {
             let booster = new Booster()
             booster.type = type
-            booster.count = 3
+            booster.count = Global.config.defaultBoosterCount
             this._boosters.push(booster)
         })
     }

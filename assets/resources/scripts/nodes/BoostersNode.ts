@@ -1,7 +1,5 @@
-import { TileAnimationType } from "../animations/TileAnimations";
-import Global from "../Global";
 import { BoostersController } from "../model/Boosters";
-import { Tile, TileState } from "../model/Tile";
+import { TileState } from "../model/Tile";
 import { Event } from "../utils/EventHandler";
 import BoosterNode from "./BoosterNode";
 
@@ -29,6 +27,7 @@ export default class BoostersNode extends cc.Component {
         this.buttons.forEach(bn => bn.scale = 1)
         currentButton.scale = 1.1
     }
+
     disableBooster() {
         this.buttons.forEach(bn => bn.scale = 1)
     }
