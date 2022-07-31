@@ -9,11 +9,13 @@ const {ccclass, property} = cc._decorator;
 export default class TileNode extends cc.Component {
     @property(cc.Sprite) tileIcon: cc.Sprite = null
     @property([cc.SpriteFrame]) icons = new Array<cc.SpriteFrame>()
+    @property([cc.SpriteFrame]) boosterIcons = new Array<cc.SpriteFrame>()
 
     private _tile: Tile = null
 
     get tile() { return this._tile }
     get isNormal() { return this._tile.isNormal }
+    get isBooster() { return this._tile.isBooster }
     get color() { return this._tile.color }
     get tilePosition() { return this._tile.position }
     get size() { return this.node.getContentSize().width }
@@ -23,14 +25,14 @@ export default class TileNode extends cc.Component {
     }
 
     async updateIcon() {
-        if (this._tile.isNormal) this.tileIcon.spriteFrame = this.icons[this.color]
+        if (this._tile.isNormal && !this._tile.isBooster) this.tileIcon.spriteFrame = this.icons[this.color]
     }
     onLoad() {
         this.tileIcon.spriteFrame = this.icons[this.color]
         this._tile.noCombo.add(this.node, () => this.noConnectedAnimation())
     }
     updateTileIconAnimation() {
-        this.tileIcon.spriteFrame = this.icons[this._tile.state]
+        this.tileIcon.spriteFrame = this.boosterIcons[this._tile.state - 2]
     }
 
     onClick() {
@@ -47,6 +49,14 @@ export default class TileNode extends cc.Component {
         return Global.tileAnimation.animate(this, TileAnimationType.Droping)
     }
     emergenceAnimation() {
-        return Global.tileAnimation.animate(this, TileAnimationType.Emergence)
+        let type = this.isBooster ? TileAnimationType.BombEmergence : TileAnimationType.Emergence
+        return Global.tileAnimation.animate(this, type)
     }
+    bombAnimation() {
+        return Global.tileAnimation.animate(this, TileAnimationType.CreateBomb)
+    }
+    mixAnimation() {
+        return Global.tileAnimation.animate(this, TileAnimationType.MixAnimation)
+    }
+
 }

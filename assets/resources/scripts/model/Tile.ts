@@ -28,7 +28,9 @@ export class Tile {
     get state() { return this._state }
     get removed() { return this._state == TileState.Empty }
     get isNormal() { return this._state != TileState.Empty }
-    get isBooster() { return this._state == TileState.Bomb || this._state == TileState.Mix}
+    get isBooster() { return this._state == TileState.Bomb || this._state == TileState.Mix }
+    get isBomb() { return this._state == TileState.Bomb }
+    get isMix() { return this._state == TileState.Mix }
     set state(state: TileState) { this._state = state }
 
     constructor(pos: cc.Vec2) {
@@ -47,7 +49,6 @@ export class Tile {
         this._state = TileState.Normal
         this._color = this.getRandomTile()
         this.onStateUpdated.dispatch()
-        cc.log("[LOG]updateState", this._state)
     }
     onClick() {
         this.onTileClick.dispatch()
@@ -58,8 +59,7 @@ export class Tile {
     updatePos(newPos: cc.Vec2) {
         this._position = newPos
     }
-    createBomb(state: TileState) {
-        cc.log("[LOG]createBomb", state)
+    createBooster(state: TileState) {
         this._state = state
     }
 

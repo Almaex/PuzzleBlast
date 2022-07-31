@@ -10,6 +10,7 @@ const {ccclass, property} = cc._decorator;
 export class GridNode extends cc.Component {
     @property(cc.Node) view: cc.Node = null
     @property(cc.Prefab) tilePrefab: cc.Prefab = null
+    @property(cc.Node) noStepNode: cc.Node = null
 
     onAnimationCompleted = new Event
     onGridChanged = new Event
@@ -32,14 +33,18 @@ export class GridNode extends cc.Component {
     }
 
     createGrid() {
+        this.noStepNode.active = false
         this._grid = new Grid(Global.config.gridSize)
         this._tileSize = this.tilePrefab.data.getContentSize().width
         this._grid.currentGrid.forEach(r => r.forEach(t => this.createTile(t)))
         this._grid.onGridChanged.add(this.node, (info: GridChangesInfo) => {
             this._gridChange(info)
-            this.onGridChanged.dispatch(info.removedTiles.length)
+            !info.needMix && this.onGridChanged.dispatch(info.removedTiles.length)
         })
         this._grid.onAddBooster.add(this.node, (tile: Tile) => this.changeTile(tile))
+        this._grid.onNeedMix.add(this.node, () => {
+            this._noStepsAnimation()
+        })
     }
 
     createTile(tile: Tile) {
@@ -59,10 +64,24 @@ export class GridNode extends cc.Component {
 
     private async _gridChange(changesInfo: GridChangesInfo) {
         await Promise.all(changesInfo.removedTiles.map(t => this.getTileNode(t).removingAnimation()))
+        changesInfo.activeTile.isBooster && await this.getTileNode(changesInfo.activeTile).bombAnimation()
         await Promise.all(changesInfo.dropTiles.map(t => this.getTileNode(t).dropingAnimation()))
         await Promise.all(changesInfo.removedTiles.map(t => this.getTileNode(t).updateIcon()))
         await Promise.all(changesInfo.removedTiles.map(t => this.getTileNode(t).emergenceAnimation()))
         this.onAnimationCompleted.dispatch(changesInfo.needMix)
         this.removeBlock()
+    }
+    private _noStepsAnimation() {
+        let node = this.noStepNode
+        const speed = 1
+            
+        cc.tween(node)
+            .call(() => {
+                node.active = true
+                node.opacity = 255
+                node.scale = 0
+            })
+            .to(speed, { scale: 1.1 })
+            .to(speed, { scale: 1 })
     }
 }

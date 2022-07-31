@@ -3,6 +3,9 @@ export default class Config {
     loadSceneDelay = 10
     defaultMoves = 10
     defaultScoreToWin = 30
+    bombRemoveArea = 1
+    bombCreateSize = 5
+    mixSize = 3
 
     
 }

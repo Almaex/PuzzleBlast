@@ -198,8 +198,8 @@ export class GridRemover {
     remove(grid: Array<Array<Tile>>, tile: cc.Vec2) {
         this._grid = grid
         this._connectedTilesArray = []
-        this._findLeft(tile, 2)
-        this._findRight(tile, 2)
+        this._findLeft(tile, 1)
+        this._findRight(tile, 1)
         return this._connectedTilesArray
     }
 

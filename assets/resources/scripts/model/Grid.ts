@@ -1,3 +1,4 @@
+import Global from "../Global";
 import { Event } from "../utils/EventHandler";
 import { GridAct, GridUtils } from "./GridUtils";
 import { Tile, TileState } from "./Tile";
@@ -20,7 +21,7 @@ export class GridChangesInfo {
     activeTile: Tile
     removedTiles: Array<Tile>
     dropTiles: Array<Tile>
-    needMix: boolean
+    needMix: boolean = false
     booster: Tile
 }
 
@@ -43,8 +44,8 @@ export class Grid {
     get isSelectBooster() { return this._state == GridState.SelectBooster }
 
     onGridChanged = new Event
-    onNeedMix = new Event
     onAddBooster = new Event
+    onNeedMix = new Event
 
 
     constructor(size: cc.Vec2) {
@@ -86,49 +87,58 @@ export class Grid {
                         this._selectBooster(tile)
                         return
                     }
+                    if (this._findNeedMix()) {
+                        this._mixGrid()
+                        tile.createBooster(TileState.Mix)
+                        this._changeCurrentGrid(tile)
+                        this.onNeedMix.dispatch()
+                    }
                     this._state = GridState.Move
                     this._changeCurrentGrid(tile)
                     })
                 this.currentGrid[row].push(tile)
             }
         }
-        this._isNeedMix()
+        this._mixGrid()
     }
-    private _isNeedMix() {
+
+    private _findNeedMix() {
         for (let row = 0; row < this.size.x; row++) {
             for (let column = 0; column < this.size.y; column++) {
                 let tilePos = cc.v2(row, column)
                 let finder = this._gridUtils.doAct(this._currentGrid, tilePos, GridAct.Find)
-                if (finder.length > 1) {
+                if (finder.length > 2) {
                     return false
                 }
             }
         }
+        return true
+    }
+    private _mixGrid(forced: boolean = false) {
+        if (!forced || !this._findNeedMix()) return
         let newBoard = this._gridUtils.doAct(this._currentGrid, this.size, GridAct.Mix) 
         this._currentGrid = newBoard
     }
 
     private _changeCurrentGrid(tile: Tile) {
         if (tile.isBooster || this._canMove(tile)) {
-        let changeType = tile.isBooster ? GridChangesType.Booster : GridChangesType.Normal
-        this._gridChangesInfo.activeTile = tile
-        this._gridChangesInfo.type = changeType
-        this._gridChangesInfo.removedTiles = tile.isBooster ? this._getRemoveTilesBomb(tile) : this._removeTiles(tile)
+            let changeType = tile.isBooster ? GridChangesType.Booster : GridChangesType.Normal
+            this._gridChangesInfo.activeTile = tile
+            this._gridChangesInfo.type = changeType
+            this._gridChangesInfo.removedTiles = this._boosterAction(tile)
+            this._gridChangesInfo.needMix = tile.isMix
 
-        let canMakeBooster = changeType != GridChangesType.Booster
-        canMakeBooster && this._createBomb(tile, this._gridChangesInfo.removedTiles.length)
+            let canMakeBooster = changeType != GridChangesType.Booster
+            canMakeBooster && this._createBomb(tile, this._gridChangesInfo.removedTiles.length)
 
-        let dropTiles = this._gridUtils.doAct(this.currentGrid, this.size, GridAct.Drop)
-        this._gridChangesInfo.dropTiles = dropTiles
-        let newGrid = this._gridUtils.doAct(this.currentGrid, this.size, GridAct.Fill)
-        this._currentGrid = newGrid
-        let needMix = this._isNeedMix()
-        if (needMix) {
-            this.onNeedMix.dispatch()
+            let dropTiles = this._gridUtils.doAct(this.currentGrid, this.size, GridAct.Drop)
+            this._gridChangesInfo.dropTiles = dropTiles
+            let newGrid = this._gridUtils.doAct(this.currentGrid, this.size, GridAct.Fill)
+            this._currentGrid = newGrid
+            this.onGridChanged.dispatch(this._gridChangesInfo)
+            this._gridChangesInfo = new GridChangesInfo()
+
         }
-        this.onGridChanged.dispatch(this._gridChangesInfo)
-        this._gridChangesInfo = new GridChangesInfo()
-    }
     }
 
     private _removeTiles(tile: Tile) {
@@ -146,8 +156,7 @@ export class Grid {
         return [tile]
     }
     private _getRemoveTilesBomb(tile: Tile) {
-        
-        let size = 2
+        let size = Global.config.bombRemoveArea
         let bombDestroyed = this._gridUtils.doAct(this._currentGrid, tile.position, GridAct.Remove)
         bombDestroyed.forEach((tile) => tile.remove())
         return bombDestroyed
@@ -159,19 +168,22 @@ export class Grid {
         this.onAddBooster.dispatch(tile)
     }
     private _createBomb(tile: Tile, tilesRemoveCount: number) {
-        let boosterList = [5, 5, 5]
-        if (tilesRemoveCount < Math.min(...boosterList)) return
-
-        let getBombType = tilesRemoveCount => {
-            if (tilesRemoveCount >= 5) {
-                return TileState.Bomb
-            } else if (tilesRemoveCount >= 5) {
-                return TileState.Mix
-            }
-        }
-
-        tile.createBomb(getBombType(tilesRemoveCount))
+        let bombCreateSize = Global.config.bombCreateSize
+        if (tilesRemoveCount < bombCreateSize) return
+        tile.createBooster(TileState.Bomb)
     } 
     private _isValidPick = (position: cc.Vec2) => this._currentGrid[position.x]?.[position.y] != null
-    connectedTilesArrayBomb = []
+
+    private _boosterAction(tile: Tile) {
+        if (tile.isBomb) {
+            return this._getRemoveTilesBomb(tile)
+        } else if (tile.isMix) {
+            let allTiles = []
+            this._currentGrid.forEach(r => allTiles = allTiles.concat(r))
+            allTiles.forEach((t) => t.remove())
+            return allTiles
+        } else {
+            return this._removeTiles(tile)
+        }
+    }
 }

@@ -1,11 +1,13 @@
-import Global from "../Global"
 import TileNode from "../nodes/TileNode"
 
 export const enum TileAnimationType {
     NoConnected,
     Removing,
     Droping,
-    Emergence
+    Emergence,
+    CreateBomb,
+    BombEmergence,
+    MixAnimation
 }
 
 export class TileAnimationController {
@@ -25,6 +27,12 @@ export class TileAnimationController {
                 return (this._droping())
             case TileAnimationType.Emergence:
                 return (this._emergence())
+            case TileAnimationType.CreateBomb:
+                return (this._createBomb())
+            case TileAnimationType.BombEmergence:
+                return (this._bombEmergence())
+            case TileAnimationType.MixAnimation:
+                return (this._mixAnimation())
             default:
                 cc.log("No valid animation!")
         }
@@ -44,9 +52,9 @@ export class TileAnimationController {
     
     private _removing = () => new Promise(r => {
         let tileNode = this._tile.node
-        const scaleTime2 = 0.1 
+        const scaleTime = 0.1 
         let scale = cc.tween()
-            .to(scaleTime2, { scale: 0 })
+            .to(scaleTime, { scale: 0 })
         cc.tween(tileNode)
             .then(scale) 
             .call(() => { tileNode.opacity = 0; tileNode.scale = 1 })
@@ -80,6 +88,50 @@ export class TileAnimationController {
             .call(() => { tileNode.opacity = 255; tileNode.scale = 1; tileNode.position = startPos})
             .delay(delay)
             .to(speed, { position: endPos }, { easing: 'circInOut' })
+            .call(r)
+            .start()
+    })
+
+    private _createBomb = () => new Promise(r => {
+        let tileNode = this._tile.node
+        const scaleTime = 0.1 
+
+        let scale = cc.tween()
+            .to(scaleTime, { scale: 1.1 })
+            .to(scaleTime, { scale: 1 })
+        cc.tween(tileNode)
+            .call(() => {
+                if (this._tile.isNormal) this._tile.tileIcon.spriteFrame = this._tile.boosterIcons[this._tile.tile.state - 2] 
+                tileNode.scale = 0
+                tileNode.opacity = 255
+            })
+            .then(scale)
+            .call(r)
+            .start()
+    }) 
+    private _bombEmergence = () => new Promise(r => {
+        let tileNode = this._tile.node
+        tileNode.opacity = 255; 
+        tileNode.scale = 1; 
+        cc.tween(tileNode)
+            .call(() => {
+                tileNode.opacity = 255; 
+                tileNode.scale = 1; 
+            })
+            .call(r)
+            .start()
+    }) 
+
+    private _mixAnimation = () => new Promise(r => {
+        let endPos = cc.v3(this._tile.tilePosition.y * this._tileSize, -this._tile.tilePosition.x * this._tileSize)
+        let tileNode = this._tile.node
+        cc.tween(tileNode)
+            .to(0.2, { scale: 0 })
+            .call(() => {
+                tileNode.position = endPos
+            })
+            .delay(0.2)
+            .to(0.2, { scale: 1 })
             .call(r)
             .start()
     })
